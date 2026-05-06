@@ -11,23 +11,39 @@
         <%- page.content %>
     </div>
 
-    <!-- 章节导航 -->
+    <!-- 章节导航（按章节号排序） -->
+<%
+// 取得所有文章，按文件名中的数字章节号升序排列
+var posts = site.posts.toArray().filter(function(p) {
+  return p.slug && /第\d+章/.test(p.title);
+});
+posts.sort(function(a, b) {
+  var matchA = a.slug.match(/第(\d+)章/);
+  var matchB = b.slug.match(/第(\d+)章/);
+  var numA = matchA ? parseInt(matchA[1]) : 9999;
+  var numB = matchB ? parseInt(matchB[1]) : 9999;
+  return numA - numB;
+});
+var currentIndex = -1;
+for (var i = 0; i < posts.length; i++) {
+  if (posts[i]._id === page._id) {
+    currentIndex = i;
+    break;
+  }
+}
+var prevPost = currentIndex > 0 ? posts[currentIndex - 1] : null;
+var nextPost = currentIndex < posts.length - 1 ? posts[currentIndex + 1] : null;
+%>
 <div class="chapter-nav" style="margin-top: 30px; display: flex; justify-content: space-between; border-top: 1px solid #000; padding-top: 15px;">
-  <% if (page.prev) { %>
-    <a href="<%- url_for(page.prev.path) %>" style="text-decoration: none; color: #000;">← <%= page.prev.title %></a>
+  <% if (prevPost) { %>
+    <a href="<%- url_for(prevPost.path) %>" style="text-decoration: none; color: #000;">← <%= prevPost.title %></a>
   <% } else { %>
     <span style="color: #aaa;">已是第一章</span>
   <% } %>
 
-  <% if (page.next) { %>
-    <a href="<%- url_for(page.next.path) %>" style="text-decoration: none; color: #000;"><%= page.next.title %> →</a>
+  <% if (nextPost) { %>
+    <a href="<%- url_for(nextPost.path) %>" style="text-decoration: none; color: #000;"><%= nextPost.title %> →</a>
   <% } else { %>
     <span style="color: #aaa;">已是最后一章</span>
   <% } %>
-</div>
-
-    <% if (theme.valine.enable && page.comments) { %>
-        <hr class="fhr">
-        <div id="vcomments"></div>
-    <% } %>
 </div>
